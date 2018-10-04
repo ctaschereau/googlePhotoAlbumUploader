@@ -3,24 +3,11 @@
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs-extra');
-const winston = require('winston');
 const Client = require('./lib/client');
 
 let albumsFolder = process.argv[2];
 
-const logger = winston.createLogger({
-	level : 'info',
-	format : winston.format.combine(
-		winston.format.timestamp({
-			format : 'YYYY-MM-DD HH:mm:ss'
-		}),
-		winston.format.printf(info => `${info.timestamp} [${info.level}] ${info.message}`)
-	),
-	transports : [
-		new winston.transports.File({filename : 'googlePhotoAlbumUploader.log'}),
-		new winston.transports.Console()
-	]
-});
+const logger = require('./logger');
 
 async function runScript() {
 	let stat = await fs.stat(albumsFolder);
