@@ -55,7 +55,7 @@ async function runScript() {
 		for (let i = 0; i < albumContent.length; i++) {
 			let photoFilename = albumContent[i];
 			let photoPath = path.join(folderItemPath, photoFilename);
-			await uploadPhoto(photoPath, albumID);
+			await client.uploadPhoto(photoPath, albumID);
 		}
 
 		logger.info(`Album "${itemName}" completed. Progress is : ${i + 1}/${folderContentNames.length}`);
