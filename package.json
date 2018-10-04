@@ -1,0 +1,21 @@
+{
+  "description": "Takes a folder containing other folders of photos and uploads them to Google Photo to create photo albums.",
+  "license": "Apache-2.0",
+  "main": "main.js",
+  "name": "googlePhotoAlbumUploader",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ctaschereau/googlePhotoAlbumUploader.git"
+  },
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "fs-extra": "^7.0.0",
+    "googleapis": "^34.0.0",
+    "opn": "^5.4.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "server-destroy": "^1.0.1",
+    "underscore": "^1.9.1",
+    "winston": "^3.1.0"
+  }
+}
