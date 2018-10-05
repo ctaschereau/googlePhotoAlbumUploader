@@ -22,11 +22,13 @@ const destroyer = require('server-destroy');
 
 const {google} = require('googleapis');
 
+const config = require('./config');
+
 
 const oauth2Client = new google.auth.OAuth2(
 	process.env.CLIENT_ID,
 	process.env.CLIENT_SECRET,
-	'http://localhost:3000/oauth2callback' // TODO : Not hardcoded
+	`http://localhost:${config.AUTH_PORT}/oauth2callback`
 );
 
 google.options({auth: oauth2Client});
