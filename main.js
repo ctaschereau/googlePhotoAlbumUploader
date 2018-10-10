@@ -3,6 +3,7 @@
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs-extra');
+const _ = require('lodash');
 const Client = require('./lib/client');
 
 let albumsFolder = process.argv[2];
@@ -26,10 +27,12 @@ async function runScript() {
 		if (!stat.isDirectory()) {
 			logger.error(`The argument must be a path to a valid folder. ${albumsFolder} is a regular file.`);
 			process.exit(1);
+			return;
 		}
-	} catch(err) {
+	} catch (err) {
 		logger.error(`The argument must be a path to a valid folder. ${err.message}`);
 		process.exit(1);
+		return;
 	}
 
 	let client = new Client();
@@ -39,9 +42,8 @@ async function runScript() {
 
 	logger.info(`There is a total of ${folderContentNames.length} items to process in the specified folder.`);
 
-	for (let i = 0; i < folderContentNames.length; i++) {
-		let itemName = folderContentNames[i];
-		let folderItemPath = path.join(albumsFolder, itemName);
+	_.each(folderContentNames, (folderContentName, index) => {
+		let folderItemPath = path.join(albumsFolder, folderContentName);
 
 		let stats = await fs.stat(folderItemPath);
 
@@ -55,14 +57,13 @@ async function runScript() {
 
 		const albumContent = await fs.readdir(folderItemPath);
 
-		for (let i = 0; i < albumContent.length; i++) {
-			let photoFilename = albumContent[i];
+		_.each(albumContent, (photoFilename) => {
 			let photoPath = path.join(folderItemPath, photoFilename);
 			await client.uploadPhoto(photoPath, albumID);
-		}
+		});
 
-		logger.info(`Album "${itemName}" completed. Progress is : ${i + 1}/${folderContentNames.length}`);
-	}
+		logger.info(`Album "${folderContentName}" completed. Progress is : ${index + 1}/${folderContentNames.length}`);
+	});
 }
 
 runScript().catch(console.error);

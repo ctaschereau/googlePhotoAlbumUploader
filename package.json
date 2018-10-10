@@ -11,6 +11,7 @@
     "dotenv": "^6.0.0",
     "fs-extra": "^7.0.0",
     "googleapis": "^34.0.0",
+    "lodash": "^4.17.11",
     "opn": "^5.4.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
