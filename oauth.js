@@ -19,16 +19,15 @@ const querystring = require('querystring');
 require('dotenv').config();
 const opn = require('opn');
 const destroyer = require('server-destroy');
-
 const {google} = require('googleapis');
-
 const config = require('./config');
 
+const AUTH_PORT = process.env.AUTH_PORT || 3000;
 
 const oauth2Client = new google.auth.OAuth2(
 	process.env.CLIENT_ID,
 	process.env.CLIENT_SECRET,
-	`http://localhost:${config.AUTH_PORT}/oauth2callback`
+	`http://localhost:${AUTH_PORT}/oauth2callback`
 );
 
 google.options({auth: oauth2Client});
