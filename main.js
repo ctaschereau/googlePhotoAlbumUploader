@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const Client = require('./lib/client');
 
+const MIN_TIME_BETWEEN_UPLOADS = 3000;
+
 let albumsFolder = process.argv[2];
 
 const logger = require('./logger');
@@ -18,6 +20,10 @@ process
 		console.error(err, 'Uncaught Exception thrown');
 		process.exit(4);
 	});
+
+let timeout = function(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+};
 
 async function runScript() {
 	try {
@@ -47,7 +53,13 @@ async function runScript() {
 
 		// If random photos are found inside the target folder, simply upload them in no particular album.
 		if (!stats.isDirectory()) {
-			await client.uploadPhoto(folderItemPath);
+			await client.fixExifDate(folderItemPath);
+
+			// Simple throttling method to avoid quota busting using a free Google api key.
+			await Promise.all([
+				client.uploadPhoto(folderItemPath),
+				timeout(MIN_TIME_BETWEEN_UPLOADS)
+			]);
 			continue;
 		}
 
@@ -58,7 +70,20 @@ async function runScript() {
 		for (let i = 0; i < albumContent.length; i++) {
 			let photoFilename = albumContent[i];
 			let photoPath = path.join(folderItemPath, photoFilename);
-			await client.uploadPhoto(photoPath, albumID);
+
+			let stats = await fs.stat(photoPath);
+			if (stats.isDirectory()) {
+				logger.warn(`Deep folder structure here : ${photoPath} will be ignored.`);
+				continue;
+			}
+
+			await client.fixExifDate(photoPath);
+
+			// Simple throttling method to avoid quota busting using a free Google api key.
+			await Promise.all([
+				client.uploadPhoto(photoPath, albumID),
+				timeout(MIN_TIME_BETWEEN_UPLOADS)
+			]);
 		}
 
 		logger.info(`Album "${itemName}" completed. Progress is : ${i + 1}/${folderContentNames.length}`);

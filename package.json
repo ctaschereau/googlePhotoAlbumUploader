@@ -8,9 +8,11 @@
     "url": "git://github.com/ctaschereau/googlePhotoAlbumUploader.git"
   },
   "dependencies": {
+    "dist-exiftool": "^10.53.0",
     "dotenv": "^6.0.0",
     "fs-extra": "^7.0.0",
     "googleapis": "^34.0.0",
+    "node-exiftool": "^2.3.0",
     "opn": "^5.4.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
