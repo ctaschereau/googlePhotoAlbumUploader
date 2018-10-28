@@ -28,3 +28,8 @@ Launch the script by giving it a full path to a folder that contains subfolders 
 ```bash
 node main.js /home/my_user/path/to/my/albums/folder
 ```
+
+An option exists to skip folders up to a certain folder :
+```bash
+node main.js --first-folder I_lost_power_while_processing_this_folder /home/my_user/path/to/my/albums/folder
+```

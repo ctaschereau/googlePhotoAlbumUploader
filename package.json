@@ -3,11 +3,13 @@
   "license": "Apache-2.0",
   "main": "main.js",
   "name": "googlePhotoAlbumUploader",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/ctaschereau/googlePhotoAlbumUploader.git"
   },
   "dependencies": {
+    "commander": "^2.19.0",
     "dist-exiftool": "^10.53.0",
     "dotenv": "^6.0.0",
     "fs-extra": "^7.0.0",

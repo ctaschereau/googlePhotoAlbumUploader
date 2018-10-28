@@ -3,29 +3,29 @@
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs-extra');
-const Client = require('./lib/client');
+const commander = require('commander');
 
-const MIN_TIME_BETWEEN_UPLOADS = 3000;
-
-let albumsFolder = process.argv[2];
+const Uploader = require('./uploader');
 
 const logger = require('./logger');
 
 process
 	.on('unhandledRejection', (reason, p) => {
-		console.error(reason, 'Unhandled Rejection at Promise', p);
-		process.exit(3);
+		//console.error(reason, 'Unhandled Rejection at Promise', p);
+		console.error('Unhandled rejection : ' + reason.message);
+		if (reason.error && reason.error.stack) {
+			console.error(reason.error.stack);
+		}
+		process.exit(100);
 	})
 	.on('uncaughtException', err => {
-		console.error(err, 'Uncaught Exception thrown');
-		process.exit(4);
+		console.error('Uncaught exception thrown : ' + err.message);
+		console.error(err.stack);
+		process.exit(200);
 	});
 
-let timeout = function(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms));
-};
 
-async function runScript() {
+async function runScript(albumsFolder) {
 	try {
 		let stat = await fs.stat(albumsFolder);
 
@@ -38,57 +38,23 @@ async function runScript() {
 		process.exit(1);
 	}
 
-	let client = new Client();
-	await client.connect();
-
-	let folderContentNames = await fs.readdir(albumsFolder);
-
-	logger.info(`There is a total of ${folderContentNames.length} items to process in the specified folder.`);
-
-	for (let i = 0; i < folderContentNames.length; i++) {
-		let itemName = folderContentNames[i];
-		let folderItemPath = path.join(albumsFolder, itemName);
-
-		let stats = await fs.stat(folderItemPath);
-
-		// If random photos are found inside the target folder, simply upload them in no particular album.
-		if (!stats.isDirectory()) {
-			await client.fixExifDate(folderItemPath);
-
-			// Simple throttling method to avoid quota busting using a free Google api key.
-			await Promise.all([
-				client.uploadPhoto(folderItemPath),
-				timeout(MIN_TIME_BETWEEN_UPLOADS)
-			]);
-			continue;
-		}
-
-		let albumID = await client.createAlbum(itemName);
-
-		const albumContent = await fs.readdir(folderItemPath);
-
-		for (let i = 0; i < albumContent.length; i++) {
-			let photoFilename = albumContent[i];
-			let photoPath = path.join(folderItemPath, photoFilename);
-
-			let stats = await fs.stat(photoPath);
-			if (stats.isDirectory()) {
-				logger.warn(`Deep folder structure here : ${photoPath} will be ignored.`);
-				continue;
-			}
-
-			await client.fixExifDate(photoPath);
-
-			// Simple throttling method to avoid quota busting using a free Google api key.
-			await Promise.all([
-				client.uploadPhoto(photoPath, albumID),
-				timeout(MIN_TIME_BETWEEN_UPLOADS)
-			]);
-		}
-
-		logger.info(`Album "${itemName}" completed. Progress is : ${i + 1}/${folderContentNames.length}`);
-	}
+	let uploader = new Uploader(albumsFolder, commander.firstFolder, commander.skipExifFix);
+	await uploader.run();
 }
 
-runScript().catch(console.error);
+let albumsFolder;
+
+commander
+	.version('0.1.0')
+	.usage('[options] <albumsFolder>')
+	.option('-s, --skip-exif-fix', 'Skips the exif data verification and fix in the case where the photo does not have a creation date')
+	.option('-f, --first-folder [startFolder]', 'Folder to use as the start folder (instead of the first one alphabetically). Useful when there is only a partial upload done')
+	.arguments('<albumsFolder>')
+	.action((_albumsFolder) => {
+		albumsFolder = _albumsFolder;
+	})
+	.parse(process.argv);
+
+
+runScript(albumsFolder);
 
